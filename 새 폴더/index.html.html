@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>여기있어 시연</title>
+<style>
+:root{--bg:#0F1D3D;--panel:#16284F;--panel2:#1E3463;--line:#2E4A82;--text:#F1F4FA;--muted:#AEB9D0;--accent:#F0A04B;--blue:#7FB2FF}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
+.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace}
+button,input,select{font-family:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1400px;margin:0 auto;padding:28px 24px 48px;display:flex;flex-direction:column;gap:22px}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px}
+h1{margin:0;font-size:30px;letter-spacing:-.02em}
+.sub{margin:0;color:var(--muted);font-size:16px}
+.badge{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--text);font-size:14px}
+.main{display:flex;flex-wrap:wrap;gap:22px;align-items:flex-start}
+.col-cam{flex:999 1 620px;min-width:0;display:flex;flex-direction:column;gap:16px}
+.col-dev{flex:1 1 380px;min-width:0;display:flex;flex-direction:column;gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+.card h2{margin:0;font-size:16px;font-weight:700}
+.small{margin:0;font-size:14px;color:var(--muted)}
+/* 천장 카메라 화면 */
+.cam{position:relative;width:100%;aspect-ratio:16/10;background:#24272B;border-radius:14px;overflow:hidden;box-shadow:inset 0 0 120px rgba(0,0,0,.55);border:1px solid #2C3036}
+.cam>div,.cam>i{position:absolute}
+#items,#boxes{inset:0}
+.hud{top:14px;font-size:13px;background:rgba(0,0,0,.55);padding:6px 10px;border-radius:6px;display:flex;align-items:center;gap:8px}
+.rec{width:8px;height:8px;border-radius:50%;background:#FF5A4E;animation:blink 1.6s ease-in-out infinite}
+.scan{left:0;width:100%;height:2px;background:var(--blue);box-shadow:0 0 18px 4px rgba(127,178,255,.5);animation:scan 1.2s linear infinite;display:none}
+.box{border:2px solid var(--accent);border-radius:6px;box-shadow:0 0 0 4px rgba(240,160,75,.2)}
+.box.past{border-color:var(--blue);border-style:dashed;box-shadow:none}
+.box span{position:absolute;left:-2px;bottom:calc(100% + 5px);white-space:nowrap;background:var(--accent);color:#141006;font-size:13px;font-weight:600;padding:3px 8px;border-radius:4px}
+.box.past span{background:var(--blue);color:#0B1426}
+.item{transition:left .7s ease,top .7s ease}
+@keyframes scan{from{top:0}to{top:100%}}
+@keyframes blink{50%{opacity:.25}}
+@keyframes pulse{from{box-shadow:0 0 0 0 rgba(240,160,75,.5)}to{box-shadow:0 0 0 26px rgba(240,160,75,0)}}
+/* 천장 기기 (아래에서 본 모습) */
+.devwrap{display:flex;flex-direction:column;align-items:center;gap:12px}
+.puck{position:relative;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#FBFAF8,#E4E1DB);border:6px solid #4A5058;display:flex;align-items:center;justify-content:center;transition:border-color .2s}
+.puck.awake{animation:pulse 1.1s ease-out infinite}
+.grille{position:absolute;inset:26px;border-radius:50%;background-image:radial-gradient(#8F8A84 1.3px,transparent 1.6px);background-size:8px 8px;opacity:.9}
+.inner{position:absolute;inset:58px;border-radius:50%;background:#EFEDE9}
+.lens{position:relative;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#3A3F48,#050608 60%);border:4px solid #1C1D20}
+.led{position:absolute;left:66px;top:96px;width:9px;height:9px;border-radius:50%;background:#FFB020;box-shadow:0 0 10px 3px rgba(255,176,32,.6)}
+.mic{width:76px;height:76px;border-radius:50%;border:none;background:#24314F;display:flex;align-items:center;justify-content:center}
+.mic[aria-pressed="true"]{background:#5A3B12}
+#status{margin:0;font-size:18px;font-weight:700;text-align:center}
+#heard{margin:0;min-height:24px;font-size:16px;text-align:center}
+#note{margin:0;font-size:14px;color:#FFB4A8;text-align:center}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.q{min-height:46px;padding:0 14px;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:12px;font-size:15px}
+.q:hover{background:#294581}
+.ghost{white-space:nowrap;min-height:44px;padding:0 14px;background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:10px;font-size:14px}
+input.txt,select{min-height:44px;padding:0 12px;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:10px;font-size:15px;min-width:0}
+#log{display:flex;flex-direction:column;gap:10px;min-height:120px;max-height:380px;overflow-y:auto;border-top:1px solid var(--line);padding-top:14px}
+.u{align-self:flex-end;max-width:86%;background:#2A3D68;padding:10px 14px;border-radius:14px 14px 4px 14px;font-size:16px;line-height:1.5}
+.d{align-self:flex-start;max-width:92%;background:#3A2A12;color:#FFE2B8;padding:10px 14px;border-radius:14px 14px 14px 4px;font-size:16px;line-height:1.55}
+.records{display:flex;flex-direction:column;font-size:14px}
+.records div{display:grid;grid-template-columns:52px 60px minmax(0,1fr) 100px;gap:8px;padding:8px 4px;border-top:1px solid var(--line);align-items:baseline}
+.records div:first-child{border-top:none}
+.records .hl{background:rgba(240,160,75,.12);border-radius:6px}
+.records .hl2{background:rgba(127,178,255,.12);border-radius:6px}
+.records .rel{color:var(--muted);text-align:right}
+.move{display:grid;grid-template-columns:60px minmax(0,1fr);gap:8px;align-items:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap">
+    <h1>여기있어</h1>
+    <p class="sub">천장 기기 하나가 기억하고, 부르면 말로 알려줘요</p>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <span class="badge">인터넷 연결 없음</span>
+    <button class="badge" id="asrBadge" type="button">음성 인식: 크롬 기본 (오프라인 음성팩 확인)</button>
+    <span class="badge" style="border:none;background:#1A2B52;color:var(--muted)">프로토타입 · 노트북에서 실행</span>
+  </div>
+</header>
+
+<div class="main">
+<section class="col-cam" aria-label="천장 카메라 화면">
+  <div class="cam" id="cam">
+    <div style="left:0;top:0;width:100%;height:3%;background:#3A4048"></div>
+    <div style="left:30%;top:0;width:30%;height:3%;background:#5B6672"></div>
+    <div style="left:3%;top:7%;width:7%;height:11.2%;border-radius:50%;background:#2F3A33;border:2px solid #3B4A40"></div>
+    <div style="left:24%;top:5%;width:42%;height:8%;background:#383B40;border-radius:4px"></div>
+    <div style="left:20%;top:28%;width:50%;height:44%;background:#2D3034;border-radius:10px;border:1px dashed #3A3E44"></div>
+    <div style="left:32%;top:40%;width:26%;height:22%;background:#4A4239;border-radius:6px"></div>
+    <div style="left:35%;top:45%;width:6%;height:9%;background:#6B6255;border-radius:2px"></div>
+    <div style="left:16%;top:74%;width:56%;height:20%;background:#43464B;border-radius:10px"></div>
+    <div style="left:19.5%;top:74%;width:49%;height:7%;background:#4D5056;border-radius:6px"></div>
+    <div style="left:20%;top:81.5%;width:24%;height:11%;background:#484B50;border-radius:6px"></div>
+    <div style="left:44.5%;top:81.5%;width:23.5%;height:11%;background:#484B50;border-radius:6px"></div>
+    <div style="left:16%;top:74%;width:3.5%;height:20%;background:#4F5359;border-radius:8px"></div>
+    <div style="left:68.5%;top:74%;width:3.5%;height:20%;background:#4F5359;border-radius:8px"></div>
+    <div style="left:78%;top:28%;width:15%;height:22%;background:#43464B;border-radius:10px"></div>
+    <div style="left:74.5%;top:69%;width:9%;height:14.4%;background:#4A4239;border-radius:50%"></div>
+    <div id="items"></div>
+    <div class="scan" id="scan"></div>
+    <div id="boxes"></div>
+    <div class="hud mono" style="left:16px"><span class="rec"></span>천장 기기 · 거실</div>
+    <div class="hud mono" style="right:16px"><span id="clock">--:--</span> · 기기 안에서 처리</div>
+  </div>
+
+  <div class="card">
+    <h2>기기에 저장된 텍스트 기록</h2>
+    <p class="small">영상은 분석 직후 삭제하고, 물건 · 위치 · 시각만 글자로 남겨요. 최근 기록이 위에 있어요.</p>
+    <div class="records" id="records"></div>
+  </div>
+</section>
+
+<section class="col-dev" aria-label="천장 기기">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+      <h2>천장 기기 (카메라 · 마이크 · 스피커 · AI 칩 일체형)</h2>
+      <button class="ghost" id="reset" type="button">대화 지우기</button>
+    </div>
+    <div class="devwrap">
+      <div class="puck" id="puck" aria-hidden="true">
+        <div class="grille"></div><div class="inner"></div><div class="lens"></div><div class="led"></div>
+      </div>
+      <button class="mic" id="mic" type="button" aria-label="듣기 켜기/끄기" aria-pressed="false">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#F1F4FA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>
+      </button>
+      <p id="status" role="status">마이크 버튼을 눌러 켜 주세요</p>
+      <p id="heard" aria-live="polite"></p>
+      <p id="note"></p>
+    </div>
+    <div class="row">
+      <label for="wake" class="small">부르는 이름</label>
+      <input class="txt" id="wake" value="어디야" style="flex:1 1 140px">
+    </div>
+    <p class="small">말해 보기: “어디야” → “핸드폰 어디 있어?” → “핸드폰이 거기 없어. 그 전에 어디 뒀는지 알려줘”</p>
+    <div id="log" aria-live="polite"><p class="small" id="empty">대화가 여기에 표시돼요.</p></div>
+  </div>
+
+  <div class="card">
+    <h2>마이크가 안 될 때 (백업 버튼)</h2>
+    <div class="row">
+      <button class="q" type="button" data-say="어디야">“어디야”</button>
+      <button class="q" type="button" data-say="리모컨 어디 있어?">리모컨?</button>
+      <button class="q" type="button" data-say="핸드폰 어디 있어?">핸드폰?</button>
+      <button class="q" type="button" data-say="안경 어디 있어?">안경?</button>
+    </div>
+    <button class="q" type="button" data-say="거기 없어. 그 전에 어디 뒀는지 알려줘">“거기 없어, 그 전에 어디 뒀어?”</button>
+  </div>
+
+  <div class="card">
+    <h2>시연용: 물건 옮기기</h2>
+    <p class="small">위치를 바꾸면 카메라가 내려놓는 순간을 인식해 지금 시각으로 기록해요.</p>
+    <div class="move"><b>리모컨</b><select id="mv-remote" aria-label="리모컨 위치"></select></div>
+    <div class="move"><b>핸드폰</b><select id="mv-phone" aria-label="핸드폰 위치"></select></div>
+    <div class="move"><b>안경</b><select id="mv-glasses" aria-label="안경 위치"></select></div>
+  </div>
+</section>
+</div>
+</div>
+
+<script>
+// ---------- 장소 · 물건 ----------
+const PLACES = {
+  sofaArm: { name:'소파 오른쪽 팔걸이', x:70.2, y:80 },
+  cushion: { name:'소파 왼쪽 쿠션',     x:31,   y:86 },
+  coffee:  { name:'거실 탁자',          x:49,   y:51 },
+  side:    { name:'소파 옆 협탁',       x:79,   y:76 },
+  tv:      { name:'TV장',               x:40,   y:9 },
+};
+const ITEMS = {
+  remote:  { name:'리모컨', words:['리모컨','리모콘','리모트'], w:1.8, h:8, dx:-1.5, dy:0 },
+  phone:   { name:'핸드폰', words:['핸드폰','휴대폰','휴대전화','스마트폰','전화기','폰'], w:2.6, h:7, dx:3, dy:-2 },
+  glasses: { name:'안경',   words:['안경','선글라스'], w:4.8, h:3.4, dx:-4, dy:3 },
+};
+// 텍스트 기록: 페이지를 연 시각 기준으로 몇 분 전에 놓였는지 (시연용 예시 데이터)
+const T0 = Date.now(), MIN = 60000;
+const records = [
+  { item:'glasses', place:'tv',      at:T0 - 185 * MIN },
+  { item:'remote',  place:'tv',      at:T0 - 95 * MIN },
+  { item:'glasses', place:'side',    at:T0 - 65 * MIN },
+  { item:'remote',  place:'cushion', at:T0 - 48 * MIN },
+  { item:'phone',   place:'side',    at:T0 - 40 * MIN },
+  { item:'remote',  place:'sofaArm', at:T0 - 12 * MIN },
+  { item:'phone',   place:'cushion', at:T0 - 10 * MIN },
+  { item:'phone',   place:'coffee',  at:T0 - 5 * MIN },
+];
+const $ = (id) => document.getElementById(id);
+const pad = (n) => String(n).padStart(2, '0');
+const hm = (t) => { const d = new Date(t); return pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+function timeKo(t) { const d = new Date(t), h = d.getHours(), m = d.getMinutes(); return (h < 12 ? '오전 ' : '오후 ') + (h % 12 || 12) + '시' + (m ? ' ' + m + '분' : ''); }
+function ago(t) {
+  const m = Math.max(0, Math.round((Date.now() - t) / MIN));
+  if (m < 1) return '방금';
+  if (m < 60) return m + '분 전';
+  const h = Math.floor(m / 60), r = m % 60;
+  return h + '시간' + (r ? ' ' + r + '분' : '') + ' 전';
+}
+const historyOf = (item) => records.filter((r) => r.item === item).sort((a, b) => b.at - a.at);
+const latest = (item) => historyOf(item)[0];
+
+// ---------- 화면 그리기 ----------
+let hlLatest = null, hlPast = [];
+function drawItems() {
+  const box = $('items'); box.innerHTML = '';
+  for (const [k, it] of Object.entries(ITEMS)) {
+    const r = latest(k); if (!r) continue;
+    const p = PLACES[r.place];
+    const el = document.createElement('div');
+    el.className = 'item';
+    Object.assign(el.style, { position:'absolute', left:(p.x + it.dx - it.w / 2) + '%', top:(p.y + it.dy - it.h / 2) + '%', width:it.w + '%', height:it.h + '%' });
+    if (k === 'remote') Object.assign(el.style, { background:'#111214', borderRadius:'3px' });
+    if (k === 'phone') Object.assign(el.style, { background:'#0B0C0E', border:'1px solid #5A5F66', borderRadius:'3px' });
+    if (k === 'glasses') { el.style.display = 'flex'; el.style.justifyContent = 'space-between'; el.innerHTML = '<i style="width:42%;height:100%;border-radius:50%;border:2px solid #C9CED4;box-sizing:border-box"></i><i style="width:42%;height:100%;border-radius:50%;border:2px solid #C9CED4;box-sizing:border-box"></i>'; }
+    box.appendChild(el);
+  }
+}
+function boxFor(r, label, past) {
+  const it = ITEMS[r.item], p = PLACES[r.place];
+  const el = document.createElement('div');
+  el.className = 'box' + (past ? ' past' : '');
+  Object.assign(el.style, { position:'absolute', left:(p.x + it.dx - it.w / 2 - 1.3) + '%', top:(p.y + it.dy - it.h / 2 - 2) + '%', width:(it.w + 2.6) + '%', height:(it.h + 4) + '%' });
+  const s = document.createElement('span'); s.textContent = label; el.appendChild(s);
+  return el;
+}
+function drawBoxes() {
+  const b = $('boxes'); b.innerHTML = '';
+  if (hlLatest) b.appendChild(boxFor(hlLatest, ITEMS[hlLatest.item].name + ' · ' + hm(hlLatest.at), false));
+  hlPast.forEach((r, i) => b.appendChild(boxFor(r, (i + 1) + ' · ' + hm(r.at) + ' (' + ago(r.at) + ')', true)));
+}
+function drawRecords() {
+  const box = $('records'); box.innerHTML = '';
+  [...records].sort((a, b) => b.at - a.at).forEach((r) => {
+    const row = document.createElement('div');
+    if (r === hlLatest) row.className = 'hl';
+    else if (hlPast.includes(r)) row.className = 'hl2';
+    [[hm(r.at), 'mono'], [ITEMS[r.item].name, ''], [PLACES[r.place].name + ' 위', ''], [ago(r.at), 'rel']].forEach(([t, c]) => { const s = document.createElement('span'); s.textContent = t; if (c) s.className = c; row.appendChild(s); });
+    box.appendChild(row);
+  });
+}
+function redraw() { drawItems(); drawBoxes(); drawRecords(); }
+function tickClock() { $('clock').textContent = hm(Date.now()); }
+setInterval(() => { tickClock(); drawRecords(); drawBoxes(); }, 30000);
+
+// ---------- 상태 ----------
+const COLORS = { off:'#4A5058', sleep:'#4FB3A9', awake:'#F0A04B', searching:'#7FB2FF', answer:'#F0A04B' };
+let mode = 'off', on = false, rec = null, speaking = false, quietUntil = 0, timers = [], awakeTimer = null, lastItem = null, local = false, speakId = 0;
+const AWAKE_MS = 9000;
+function statusText(p) {
+  const n = wakeWords()[0] || '어디야';
+  return { off:'마이크 버튼을 눌러 켜 주세요', sleep:'“' + n + '”라고 불러 주세요', awake:'네? 말씀하세요', searching:'텍스트 기록에서 찾는 중…', answer:'대답하는 중' }[p];
+}
+function setPhase(p, custom) {
+  $('puck').style.borderColor = COLORS[p];
+  $('puck').classList.toggle('awake', p === 'awake');
+  $('status').textContent = custom || statusText(p);
+  $('status').style.color = p === 'off' ? 'var(--text)' : COLORS[p];
+  $('scan').style.display = p === 'searching' ? 'block' : 'none';
+}
+const idlePhase = () => setPhase(on ? 'sleep' : 'off');
+function addLog(who, text) {
+  $('empty').style.display = 'none';
+  const el = document.createElement('div'); el.className = who === 'user' ? 'u' : 'd'; el.textContent = text;
+  $('log').appendChild(el); $('log').scrollTop = $('log').scrollHeight;
+}
+// 기기가 말하는 동안과 직후에는 자기 목소리를 다시 알아듣지 않도록 무시
+function speak(text, after) {
+  let done = false; const id = ++speakId;
+  const finish = () => { if (done || id !== speakId) return; done = true; speaking = false; quietUntil = Date.now() + 600; if (after) after(); };
+  speaking = true;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text); u.lang = 'ko-KR';
+    const ko = speechSynthesis.getVoices().find((v) => v.lang && v.lang.startsWith('ko')); if (ko) u.voice = ko;
+    u.onend = finish; u.onerror = finish; speechSynthesis.speak(u);
+  } catch (e) {}
+  timers.push(setTimeout(finish, text.length * 230 + 1500));
+}
+function clearTimers() { timers.forEach(clearTimeout); timers = []; clearTimeout(awakeTimer); }
+const norm = (s) => s.replace(/[\s.,?!]/g, '');
+const wakeWords = () => $('wake').value.split(',').map(norm).filter(Boolean);
+function afterWake(t) { const n = norm(t); for (const w of wakeWords()) { const i = n.indexOf(w); if (i >= 0) return n.slice(i + w.length); } return null; }
+function findItem(t) { const s = norm(t); return Object.keys(ITEMS).find((k) => ITEMS[k].words.some((w) => s.includes(w))) || null; }
+// “거기 없어”, “그 전에 어디 뒀어” 같은 말
+const wantsHistory = (t) => /없어|없는데|없다|그전|이전|전에|아까|뒀었|두었었|어디뒀|어디두었/.test(norm(t));
+
+function stayAwake() {
+  mode = 'awake'; setPhase('awake');
+  clearTimeout(awakeTimer);
+  awakeTimer = setTimeout(() => { if (mode === 'awake') { mode = on ? 'sleep' : 'off'; idlePhase(); } }, AWAKE_MS);
+}
+function wake(said) {
+  clearTimers(); mode = 'awake';
+  addLog('user', said); addLog('device', '네?');
+  setPhase('awake');
+  speak('네?', stayAwake);
+}
+function reply(said, build) {
+  clearTimers(); speakId++;
+  try { speechSynthesis.cancel(); } catch (e) {}
+  mode = 'busy';
+  addLog('user', said);
+  setPhase('searching');
+  timers.push(setTimeout(() => {
+    const text = build();
+    redraw();
+    setPhase('answer');
+    addLog('device', text);
+    speak(text, stayAwake); // 대답 후 잠깐 더 들어서 “거기 없어”를 바로 받을 수 있게
+  }, 1200));
+}
+function answerWhere(said, item) {
+  reply(said, () => {
+    lastItem = item; hlPast = [];
+    const r = latest(item);
+    if (!r) { hlLatest = null; return ITEMS[item].name + '은 아직 기록이 없어요.'; }
+    hlLatest = r;
+    return ITEMS[item].name + '은 ' + PLACES[r.place].name + ' 위에 있어요. ' + ago(r.at) + '인 ' + timeKo(r.at) + '에 두셨어요.';
+  });
+}
+function answerHistory(said, item) {
+  reply(said, () => {
+    lastItem = item;
+    const h = historyOf(item);
+    hlLatest = null;
+    hlPast = h.slice(1, 4);
+    if (!h.length) return ITEMS[item].name + '은 아직 기록이 없어요.';
+    if (h.length === 1) return '그 전 기록은 없어요. ' + ITEMS[item].name + '은 ' + timeKo(h[0].at) + '에 ' + PLACES[h[0].place].name + ' 위에 둔 기록이 마지막이에요. 그 뒤에 손으로 옮기셨을 수 있어요.';
+    const parts = hlPast.map((r, i) => ago(r.at) + '인 ' + timeKo(r.at) + '에는 ' + PLACES[r.place].name + ' 위에 두셨' + (i < hlPast.length - 1 ? '고' : '어요.'));
+    return '그 전 기록을 알려드릴게요. ' + parts.join(', ');
+  });
+}
+function miss(said) {
+  reply(said, () => { hlLatest = null; hlPast = []; return '리모컨, 핸드폰, 안경 중에서 물어봐 주세요.'; });
+}
+// 말 한 마디를 해석
+function handle(t, fromWake) {
+  const item = findItem(t);
+  if (wantsHistory(t) && (item || lastItem)) return answerHistory(t, item || lastItem);
+  if (item) return answerWhere(t, item);
+  if (!fromWake) miss(t);
+}
+function heard(t) {
+  if (mode === 'sleep' || mode === 'off') {
+    const rest = afterWake(t);
+    if (rest === null) return;
+    if (rest && (findItem(rest) || (wantsHistory(rest) && lastItem))) handle(t, true);
+    else wake(t);
+  } else if (mode === 'awake') {
+    clearTimeout(awakeTimer);
+    const rest = afterWake(t);
+    if (rest !== null && !rest) { wake(t); return; }
+    handle(t, false);
+  }
+}
+
+// 백업 버튼: 마이크 없이도 같은 흐름
+document.querySelectorAll('[data-say]').forEach((b) => b.addEventListener('click', () => {
+  const t = b.dataset.say;
+  if (t === '어디야') { wake(wakeWords()[0] || '어디야'); return; }
+  if (mode !== 'awake') { mode = 'awake'; }
+  handle(t, false);
+}));
+
+// ---------- 시연용 물건 옮기기 ----------
+for (const k of Object.keys(ITEMS)) {
+  const sel = $('mv-' + k);
+  for (const [pk, p] of Object.entries(PLACES)) { const o = document.createElement('option'); o.value = pk; o.textContent = p.name + ' 위'; sel.appendChild(o); }
+  sel.value = latest(k).place;
+  sel.addEventListener('change', () => {
+    records.push({ item:k, place:sel.value, at:Date.now() });
+    hlLatest = latest(k); hlPast = [];
+    redraw();
+    timers.push(setTimeout(() => { if (hlLatest && hlLatest.item === k) { hlLatest = null; drawBoxes(); drawRecords(); } }, 2500));
+  });
+}
+
+$('reset').onclick = () => {
+  clearTimers(); speakId++; speaking = false;
+  try { speechSynthesis.cancel(); } catch (e) {}
+  mode = on ? 'sleep' : 'off'; hlLatest = null; hlPast = []; lastItem = null;
+  redraw(); idlePhase(); $('heard').textContent = ''; $('note').textContent = '';
+  $('log').innerHTML = '<p class="small" id="empty">대화가 여기에 표시돼요.</p>';
+};
+$('wake').addEventListener('input', () => { if (mode === 'sleep' || mode === 'off') idlePhase(); });
+
+// ---------- 마이크 (계속 듣기) ----------
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const ERR = {
+  'not-allowed':'마이크 권한이 막혀 있어요. 주소창 왼쪽 아이콘에서 마이크를 허용해 주세요.',
+  'service-not-allowed':'마이크 권한이 막혀 있어요. 주소창 왼쪽 아이콘에서 마이크를 허용해 주세요.',
+  'audio-capture':'마이크를 찾을 수 없어요. 노트북 마이크 연결을 확인해 주세요.',
+  'network':'음성 인식 서버에 연결할 수 없어요. 오프라인 음성팩이 없으면 인터넷이 필요해요.',
+  'language-not-supported':'한국어 오프라인 음성팩이 아직 없어요.'
+};
+async function checkLocal() {
+  if (!SR) { $('asrBadge').textContent = '음성 인식 미지원 브라우저 (크롬 사용)'; return; }
+  if (!SR.available) { $('asrBadge').textContent = '이 크롬은 오프라인 음성 인식이 없어요 (인터넷 사용)'; return; }
+  try {
+    const st = await SR.available({ langs:['ko-KR'], processLocally:true });
+    local = st === 'available';
+    if (st === 'downloadable' || st === 'downloading') {
+      $('asrBadge').textContent = '한국어 오프라인 음성팩 내려받는 중… (첫 1회 인터넷 필요)';
+      if (SR.install) SR.install({ langs:['ko-KR'], processLocally:true }).then((ok) => { local = !!ok; badge(); }).catch(badge);
+      return;
+    }
+  } catch (e) {}
+  badge();
+}
+function badge() { $('asrBadge').textContent = local ? '음성 인식: 인터넷 없이 기기 안에서' : '음성 인식: 인터넷 사용 중 (오프라인 음성팩 없음)'; }
+$('asrBadge').onclick = () => { $('asrBadge').textContent = '오프라인 음성팩 확인 중…'; checkLocal(); };
+
+function startRec() {
+  if (!on || rec) return;
+  const r = new SR();
+  r.lang = 'ko-KR'; r.interimResults = true; r.continuous = true; r.maxAlternatives = 3;
+  if (local) try { r.processLocally = true; } catch (e) {}
+  r.onresult = (e) => {
+    if (speaking || Date.now() < quietUntil) return;
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const res = e.results[i];
+      if (!res.isFinal) { $('heard').textContent = '“' + res[0].transcript + '”'; continue; }
+      const alts = Array.from(res).map((a) => a.transcript.trim());
+      const t = alts.find((x) => afterWake(x) !== null) || alts.find((x) => findItem(x) || wantsHistory(x)) || alts[0];
+      $('heard').textContent = '“' + t + '”';
+      if (t) heard(t);
+    }
+  };
+  r.onerror = (e) => {
+    if (e.error === 'no-speech' || e.error === 'aborted') return;
+    $('note').textContent = ERR[e.error] || ('음성 인식 오류: ' + e.error);
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed' || e.error === 'audio-capture') turnOff();
+  };
+  r.onend = () => { rec = null; if (on) setTimeout(startRec, 300); };
+  rec = r;
+  try { r.start(); } catch (e) { rec = null; setTimeout(startRec, 1000); }
+}
+function turnOn() { on = true; mode = 'sleep'; $('mic').setAttribute('aria-pressed', 'true'); $('note').textContent = ''; idlePhase(); startRec(); }
+function turnOff() {
+  on = false; mode = 'off'; clearTimers(); speakId++; speaking = false;
+  try { speechSynthesis.cancel(); } catch (e) {}
+  $('mic').setAttribute('aria-pressed', 'false');
+  if (rec) try { rec.abort(); } catch (e) {}
+  rec = null; idlePhase();
+}
+$('mic').onclick = async () => {
+  if (!SR) { $('note').textContent = '이 브라우저는 음성 인식을 지원하지 않아요. 크롬으로 열어 주세요.'; return; }
+  if (on) { turnOff(); return; }
+  try { if (!window._micStream && navigator.mediaDevices) window._micStream = await navigator.mediaDevices.getUserMedia({ audio:true }); }
+  catch (e) { $('note').textContent = ERR['not-allowed']; return; }
+  turnOn();
+};
+
+try { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices(); } catch (e) {}
+tickClock(); redraw(); setPhase('off');
+</script>
+</body>
+</html>
